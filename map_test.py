@@ -49,36 +49,35 @@ for exporter in exporters:
 
          # Add direction marker at the end of the line
         fig.add_trace(go.Scattermapbox(
-            lon = [importer_mean['Importer_lon']],
-            lat = [importer_mean['Importer_lat']],
-            mode = 'markers',
-            marker = dict(size = 6, color = 'red')
+            lon = [exporter_mean['Exporter_lon'], importer_mean['Importer_lon']],
+            lat = [exporter_mean['Exporter_lat'], importer_mean['Importer_lat']],
+            mode = 'lines',
+            line = dict(width = 2, color = 'blue'),
         ))
 
+        # Calculate the arrowhead for the line
+        l = 1.1  # arrow length
+        widh = 0.010  # half the width of the arrow base
+        A = np.array([exporter_mean['Exporter_lon'], exporter_mean['Exporter_lat']])
+        B = np.array([importer_mean['Importer_lon'], importer_mean['Importer_lat']])
+        v = B - A
+        w = v / np.linalg.norm(v)
+        u = np.array([-v[1], v[0]])  # orthogonal to w
         
-        # # Calculate the arrowhead for the line
-        # l = 1.1  # arrow length, adjust as needed
-        # widh = 0.010  # 2*widh is the width of the arrow base as a triangle
-        # A = np.array(exporter_mean)
-        # B = np.array(importer_mean)
-        # v = B - A
-        # w = v / np.linalg.norm(v)
-        # u = np.array([-v[1], v[0]])  # u orthogonal to w
+        # Calculate points for the arrowhead
+        P = B - l * w
+        S = P - widh * u
+        T = P + widh * u
         
-        # # Calculate points for the arrowhead
-        # P = B - l * w
-        # S = P - widh * u
-        # T = P + widh * u
-        
-        # # Add the arrowhead as a filled triangle
-        # fig.add_trace(go.Scattergeo(
-        #     lon = [S[0], T[0], B[0], S[0]],
-        #     lat = [S[1], T[1], B[1], S[1]],
-        #     mode = 'lines',
-        #     fill = 'toself',
-        #     fillcolor = 'blue',
-        #     line_color = 'blue'
-        # ))
+        # Add the arrowhead as a filled triangle
+        fig.add_trace(go.Scattermapbox(
+            lon = [S[0], T[0], B[0], S[0]],
+            lat = [S[1], T[1], B[1], S[1]],
+            mode = 'lines',
+            fill = 'toself',
+            fillcolor = 'blue',
+            line_color = 'blue'
+        ))
 
 # Update the layout to adjust the appearance and set the mapbox style
 fig.update_layout(
