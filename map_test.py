@@ -2,6 +2,12 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
+# Function to interpolate points between two coordinates
+def interpolate_points(lon1, lat1, lon2, lat2, num_points):
+    lons = np.linspace(lon1, lon2, num_points)
+    lats = np.linspace(lat1, lat2, num_points)
+    return lons, lats
+
 # Load the dataset
 file_path = 'Group2_Sample.xlsx'
 data = pd.read_excel(file_path)
@@ -20,17 +26,21 @@ sl_lon = filtered_data['Importer_lon'].mean()
 
 fig = go.Figure()
 
-# Add line between the US and Sri Lanka
+# Interpolate points for a straighter line
+num_intermediate_points = 100  # Increase the number for a straighter line
+interpolated_lons, interpolated_lats = interpolate_points(us_lon, us_lat, sl_lon, sl_lat, num_intermediate_points)
+
+# Add straighter line between the US and Sri Lanka
 fig.add_trace(go.Scattergeo(
-    lat = [us_lat, sl_lat], 
-    lon = [us_lon, sl_lon],
+    lat = interpolated_lats,
+    lon = interpolated_lons,
     mode = 'lines',
     line = dict(width = 2, color = 'blue'),
 ))
 
 # Adding the arrow to the end of the line
 l = 1.1  # arrow length, adjust as needed
-widh = 0.035  # 2*widh is the width of the arrow base as a triangle
+widh = 0.010  # 2*widh is the width of the arrow base as a triangle
 
 # Calculate vector from US to Sri Lanka
 A = np.array([us_lon, us_lat])
