@@ -28,6 +28,8 @@ mapbox_style = "open-street-map"
 exporters = data['Reporting Country (Exporter)'].unique()
 importers = data['Partner Country (Importer)'].unique()
 
+num_intermediate_points = 100
+
 # Iterate over each exporter-importer pair
 for exporter in exporters:
     for importer in importers:
@@ -38,19 +40,20 @@ for exporter in exporters:
         # Calculate mean coordinates for exporter and importer
         exporter_mean = exporter_data[['Exporter_lon', 'Exporter_lat']].mean()
         importer_mean = importer_data[['Importer_lon', 'Importer_lat']].mean()
-        
-        # Add straight line between exporter and importer using Scattermapbox
-        fig.add_trace(go.Scattermapbox(
-            lon = [exporter_mean['Exporter_lon'], importer_mean['Importer_lon']],
-            lat = [exporter_mean['Exporter_lat'], importer_mean['Importer_lat']],
-            mode = 'lines',
-            line = dict(width = 2, color = 'blue'),
-        ))
 
+          # Interpolate points for a straighter line
+        interpolated_lons, interpolated_lats = interpolate_points(
+            exporter_mean['Exporter_lon'], exporter_mean['Exporter_lat'], 
+            importer_mean['Importer_lon'], importer_mean['Importer_lat'], 
+            num_intermediate_points
+        )
+
+        
+       
          # Add direction marker at the end of the line
-        fig.add_trace(go.Scattermapbox(
-            lon = [exporter_mean['Exporter_lon'], importer_mean['Importer_lon']],
-            lat = [exporter_mean['Exporter_lat'], importer_mean['Importer_lat']],
+        fig.add_trace(go.Scattergeo(
+            lon = interpolated_lons,
+            lat = interpolated_lats,
             mode = 'lines',
             line = dict(width = 2, color = 'blue'),
         ))
@@ -70,13 +73,13 @@ for exporter in exporters:
         T = P + widh * u
         
         # Add the arrowhead as a filled triangle
-        fig.add_trace(go.Scattermapbox(
+        fig.add_trace(go.Scattergeo(
             lon = [S[0], T[0], B[0], S[0]],
             lat = [S[1], T[1], B[1], S[1]],
             mode = 'lines',
             fill = 'toself',
             fillcolor = 'red',
-            line_color = 'red'
+            line_color = 'blue'
         ))
 
 # Update the layout to adjust the appearance and set the mapbox style
